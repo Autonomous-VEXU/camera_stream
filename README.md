@@ -25,9 +25,9 @@ Frames are sent as raw BGR pixel data over a TCP socket — no video encoding.
 
 ## Network Configuration
 
-The streamer connects **outbound** to a fixed IP. Set a static IP on the receiver to match.
+The Sender connects **outbound** to a fixed IP. Set a static IP on the receiver to match.
 
-**Receiver PC static IP (required):**
+**Receiver static IP (required):**
 
 | Field | Value |
 |---|---|
@@ -54,7 +54,7 @@ The Sender does not need a specific IP — only the receiver does.
 pip3 install opencv-python numpy
 ```
 
-The `ArducamUtils` dependency comes from Arducam's SDK. Follow their setup guide for your specific camera module and ensure `utils.py` is in the same directory as `streamer.py`.
+The `ArducamUtils` dependency comes from Arducam's SDK. Follow their setup guide for your specific camera module and ensure `utils.py` is in the same directory as `stream_raw.py`.
 
 ### Receiver
 
@@ -76,13 +76,13 @@ python3 receive_raw.py
 
 The receiver will listen on port `5000` and wait for the Sender to connect.
 
-### 2. Start the streamer
+### 2. Start the Sender
 
 ```bash
 python3 stream_raw.py
 ```
 
-The streamer will wait for a frame from the camera, then connect to the receiver and begin sending.
+The Sender will wait for a frame from the camera, then connect to the receiver and begin sending.
 
 ### Receiver controls (while stream window is open)
 
@@ -111,15 +111,15 @@ Frame resolution after downscale: **2560 × 400 px**, 3 channels = **3,072,000 b
 
 All tuneable constants are at the top of each script.
 
-**`streamer.py`**
+**`stream_raw.py`**
 
 | Constant | Default | Description |
 |---|---|---|
-| `HOST` | `192.168.1.100` | Receiver PC IP address |
+| `HOST` | `192.168.1.100` | Receiver IP address |
 | `PORT` | `5000` | TCP port |
 | `TARGET_FPS` | `30` | Sending rate cap |
 
-**`receiver.py`**
+**`receive_raw.py`**
 
 | Constant | Default | Description |
 |---|---|---|
@@ -134,14 +134,14 @@ All tuneable constants are at the top of each script.
 
 Both sides handle disconnects without needing a restart:
 
-- **Streamer:** If the connection is refused or drops mid-stream, it closes the socket and retries every 2 seconds until the receiver is available again.
+- **Sender:** If the connection is refused or drops mid-stream, it closes the socket and retries every 2 seconds until the receiver is available again.
 - **Receiver:** If the Sender disconnects, it closes the connection and immediately starts listening for a new one. The display window stays open while waiting.
 
 The camera capture thread on the Jetson runs independently and is never interrupted by network events.
 
 ---
 
-## Image Processing (streamer-side)
+## Image Processing (Sender-side)
 
 Before sending, each frame is processed on the Jetson Nano:
 
@@ -158,13 +158,13 @@ Before sending, each frame is processed on the Jetson Nano:
 
 ## Troubleshooting
 
-**Streamer says "Receiver not ready, retrying..." indefinitely**
+**Sender says "Receiver not ready, retrying..." indefinitely**
 - Check the static IP is set correctly on the Receiver (`192.168.1.100`)
-- Make sure `receiver.py` is running before or shortly after `streamer.py`
-- Check no firewall is blocking port `5000` on the PC
+- Make sure `receive_raw.py` is running before or shortly after `stream_raw.py`
+- Check no firewall is blocking port `5000` on the Receiver
 
 **Receiver shows no window / black frame**
-- Confirm `CAM_W` and `CAM_H` in `receiver.py` match the resolution being sent by the streamer (default: 2560×400)
+- Confirm `CAM_W` and `CAM_H` in `receive_raw.py` match the resolution being sent by the Sender (default: 2560×400)
 - mismatch will cause `reshape()` to throw an error
 
 **High latency**
