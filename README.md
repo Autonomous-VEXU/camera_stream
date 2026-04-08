@@ -10,7 +10,7 @@ The system has two scripts:
 
 | Script | Runs on | Role |
 |---|---|---|
-| `steam_raw.py` | Sender | Captures, processes, and sends frames |
+| `stream_raw.py` | Sender | Captures, processes, and sends frames |
 | `receive_raw.py` | Receiver | Receives, displays, and optionally saves frames |
 
 Frames are sent as raw BGR pixel data over a TCP socket — no video encoding. 
